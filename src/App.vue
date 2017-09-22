@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <img src="./assets/logo.png" @click="getData">
-    <super-table :propData="propDatas" :isOperation="true" ref="superTable">
+    <super-table @cell-dblclick="handleEdit" :propData="propDatas" :isOperation="true" ref="superTable">
       <el-table-column prop="name" label="姓名" align="center">
         <template scope="scope">
           <el-input v-model="scope.row.name"></el-input>
@@ -44,6 +44,9 @@ export default {
   methods: {
     getData() {
       console.log(this.$refs.superTable.data);
+    },
+    handleEdit(row, column, cell, event) {
+      console.log(423423);
     }
   }
 };

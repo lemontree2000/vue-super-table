@@ -1,7 +1,7 @@
 <template>
   <div class="super-table">
     <div class="table-wrapper">
-      <el-table :data="data">
+      <el-table :data="data" @cell-dblclick="handleEdit">
         <slot></slot>
         <el-table-column
           fixed="right"
@@ -14,12 +14,22 @@
             <el-button type="danger" size="mini" @click="deleteRow(scope.$index, scope.rows)">删除</el-button>
           </template>
         </el-table-column>
+        <el-table-column label="日期" width="200" prop="name">
+          <template scope="scope">
+            <span v-show="!scope.row.editFlag">{{ scope.row.name }}</span>
+            <span v-show="scope.row.editFlag" class="cell-edit-input">
+              <el-input v-model="scope.row.name" @keyup.enter.native="handleSave($event, scope.row)" @blur="handleSave($event, scope.row)" >
+              </el-input>
+            </span>
+          </template>
+        </el-table-column>
       </el-table>
     </div>
   </div>
 </template>
 
 <script>
+
 export default {
   name: 'v-super-table',
   props: {
@@ -58,6 +68,21 @@ export default {
       if (this.data.length !== 1) {
         this.data.splice(index, 1);
       }
+    },
+    _handleEdit: function(row, column, event) {
+      this.$set(row, 'editFlag', true);
+      var oInput = event.getElementsByTagName('input')[0];
+      setTimeout(function() {
+        oInput.focus();
+      }, 0);
+    },
+    handleEdit(row, column, event) {
+      this.$emit('cell-dblclick', row, column, event);
+      this._handleEdit(row, column, event);
+    },
+    _handleSave: function(e, row) {
+      // 保存数据，向后台取数据
+      this.$set(row, 'editFlag', false);
     }
   },
   created() {
