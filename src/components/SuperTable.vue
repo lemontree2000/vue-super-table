@@ -3,22 +3,17 @@
     <div class="table-wrapper">
       <el-table :data="data" @cell-dblclick="handleEdit">
         <slot></slot>
-        <el-table-column
-          fixed="right"
-          label="操作"
-          align="center"
-          v-if="isOperation"
-          width="120">
+        <el-table-column fixed="right" label="操作" align="center" v-if="isOperation" width="120">
           <template scope="scope">
             <el-button type="success" size="mini" @click="addRow">添加</el-button>
             <el-button type="danger" size="mini" @click="deleteRow(scope.$index, scope.rows)">删除</el-button>
           </template>
         </el-table-column>
-        <el-table-column label="日期" width="200" prop="name">
+        <el-table-column :label="item.label" width="200" :prop="item.prop" v-for="item in editData" :key="item.prop" align="center">
           <template scope="scope">
-            <span v-show="!scope.row.editFlag">{{ scope.row.name }}</span>
-            <span v-show="scope.row.editFlag" class="cell-edit-input">
-              <el-input v-model="scope.row.name" @keyup.enter.native="handleSave($event, scope.row)" @blur="handleSave($event, scope.row)" >
+            <span>{{ scope.row[item.prop] }}</span>
+            <span class="cell-edit-input" style="display: none;" id="span">
+              <el-input v-model="scope.row[item.prop]" class="e-input"  @blur="handleSave($event, scope.row)">
               </el-input>
             </span>
           </template>
@@ -40,6 +35,10 @@ export default {
     isOperation: {
       type: Boolean,
       defalut: false
+    },
+    editData: {
+      type: Array,
+      defalut: []
     }
   },
   data() {
@@ -69,9 +68,13 @@ export default {
         this.data.splice(index, 1);
       }
     },
-    _handleEdit: function(row, column, event) {
-      this.$set(row, 'editFlag', true);
-      var oInput = event.getElementsByTagName('input')[0];
+    _handleEdit: function(row, column, cell, event) {
+      var oInput = cell.querySelector('.e-input input');
+      if (!oInput || row.disable) return;
+      var oSpan2 = cell.getElementsByTagName('span')[1];
+      var oSpan1 = cell.getElementsByTagName('span')[0];
+      oSpan2.style.display = 'block';
+      oSpan1.style.display = 'none';
       setTimeout(function() {
         oInput.focus();
       }, 0);
@@ -82,7 +85,14 @@ export default {
     },
     _handleSave: function(e, row) {
       // 保存数据，向后台取数据
-      this.$set(row, 'editFlag', false);
+      var textSpan = e.path[3].getElementsByTagName('span')[0];
+      var inputSpan = e.path[3].getElementsByTagName('span')[1];
+      inputSpan.style.display = 'none';
+      textSpan.style.display = 'block';
+    },
+    handleSave: function(e, row) {
+      this.$emit('handle-save', e, row);
+      this._handleSave(e, row);
     }
   },
   created() {
@@ -94,7 +104,5 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="less" scoped>
-  .super-table {
-
-  }
+.super-table {}
 </style>
